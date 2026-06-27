@@ -1,4 +1,4 @@
-export const TERMS_VERSION = "2026-06-27";
+export const TERMS_VERSION = "2026-06-27-v2";
 
 export const TERMS_STORAGE_KEY = "darklens_terms_accepted_version";
 

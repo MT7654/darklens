@@ -7,6 +7,7 @@ import { submitScan } from "@/app/actions/scan/submitScan";
 import { ScanProgressOverlay } from "@/components/scan/ScanProgressOverlay";
 import { TermsOfUseDialog } from "@/components/scan/TermsOfUseDialog";
 import { HOMEPAGE_DISCLAIMER } from "@/lib/constants/disclaimers";
+import { TERMS_MODAL } from "@/lib/constants/terms";
 import { readScreenshotFile } from "@/lib/screenshot-upload";
 import { hasAcceptedCurrentTerms } from "@/lib/terms-storage";
 import {
@@ -62,6 +63,7 @@ export function HeroUrlScanner() {
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [termsReviewOpen, setTermsReviewOpen] = useState(false);
   const [pendingScan, setPendingScan] = useState<PendingScan | null>(null);
   const [scanPhase, setScanPhase] = useState<ScanProgressPhase>("idle");
   const isScanning = scanPhase !== "idle";
@@ -145,6 +147,14 @@ export function HeroUrlScanner() {
     setPendingScan(null);
   }
 
+  function openTermsReview() {
+    setTermsReviewOpen(true);
+  }
+
+  function handleTermsReviewClose() {
+    setTermsReviewOpen(false);
+  }
+
   function handleScreenshotChange(event: React.ChangeEvent<HTMLInputElement>) {
     setError(null);
     const file = event.target.files?.[0] ?? null;
@@ -154,9 +164,9 @@ export function HeroUrlScanner() {
   return (
     <>
       <TermsOfUseDialog
-        open={termsOpen}
-        onClose={handleTermsClose}
-        onAccept={handleTermsAccept}
+        open={termsOpen || termsReviewOpen}
+        onClose={termsOpen ? handleTermsClose : handleTermsReviewClose}
+        onAccept={termsOpen ? handleTermsAccept : handleTermsReviewClose}
       />
 
       {isScanning ? (
@@ -257,6 +267,17 @@ export function HeroUrlScanner() {
               {HOMEPAGE_DISCLAIMER}
             </p>
           )}
+
+          <div className="flex items-center justify-center gap-1.5 pt-1 text-xs text-secondary">
+            <span>By scanning, you agree to our</span>
+            <button
+              type="button"
+              onClick={openTermsReview}
+              className="cursor-pointer font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded"
+            >
+              {TERMS_MODAL.title}
+            </button>
+          </div>
         </form>
       </div>
     </>
