@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getScan } from "@/app/actions/scan/getScan";
 import { ScanReport } from "@/components/scan/ScanReport";
+import { canFrameUrl } from "@/lib/frameability";
 
 export const maxDuration = 60;
 
@@ -40,9 +41,8 @@ export default async function ScanPage({ params }: ScanPageProps) {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
-      <ScanReport scan={result.scan} />
-    </div>
-  );
+  const previewUrl = result.scan.finalUrl ?? result.scan.url;
+  const frameable = await canFrameUrl(previewUrl);
+
+  return <ScanReport scan={result.scan} frameable={frameable} />;
 }

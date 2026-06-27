@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { DetectionGroup } from "@/components/scan/DetectionGroup";
-import { RiskGauge } from "@/components/scan/RiskGauge";
+import { LiveSitePreview } from "@/components/scan/LiveSitePreview";
 import { ScreenshotRescanForm } from "@/components/scan/ScreenshotRescanForm";
 import {
   Card,
@@ -34,6 +34,7 @@ import type { ScanWithDetections } from "@/types/scan";
 
 type ScanReportProps = {
   scan: ScanWithDetections;
+  frameable?: boolean;
 };
 
 function groupDetections(scan: ScanWithDetections) {
@@ -70,7 +71,7 @@ function getPressureDetections(scan: ScanWithDetections) {
   );
 }
 
-export function ScanReport({ scan }: ScanReportProps) {
+export function ScanReport({ scan, frameable = true }: ScanReportProps) {
   const accessBlocked = isAccessBlockedScan(scan);
   const pressureDetections = getPressureDetections(scan);
   const grouped = groupDetections({ ...scan, detections: pressureDetections });
@@ -150,29 +151,16 @@ export function ScanReport({ scan }: ScanReportProps) {
               </div>
             </div>
 
-            {/* Screenshot / preview area */}
-            <div className="flex flex-1 items-center justify-start overflow-auto bg-muted/20 p-3">
-              {scan.viewportScreenshot ? (
-                // biome-ignore lint/performance/noImgElement: base64 evidence snapshot from scan
-                <img
-                  src={`data:image/jpeg;base64,${scan.viewportScreenshot}`}
-                  alt="Viewport screenshot captured during scan"
-                  className="w-full rounded-lg border border-border/40 object-top"
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-3 py-16 text-center">
-                  <Camera className="size-10 text-secondary/40" />
-                  <p className="max-w-xs text-sm text-secondary">
-                    {accessBlocked
-                      ? "No screenshot captured — the page blocked automated access."
-                      : "No screenshot available for this scan."}
-                  </p>
-                  {accessBlocked ? (
-                    <ScreenshotRescanForm url={scan.url} />
-                  ) : null}
-                </div>
-              )}
-            </div>
+            {/* Live preview or captured snapshot */}
+            <LiveSitePreview
+              url={scan.finalUrl ?? scan.url}
+              frameable={frameable}
+              screenshotBase64={scan.viewportScreenshot ?? undefined}
+              accessBlocked={accessBlocked}
+              rescanForm={
+                accessBlocked ? <ScreenshotRescanForm url={scan.url} /> : undefined
+              }
+            />
           </div>
         </div>
 
