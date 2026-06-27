@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { DetectionGroup } from "@/components/scan/DetectionGroup";
 import { RiskGauge } from "@/components/scan/RiskGauge";
@@ -8,6 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardContent,
 } from "@/components/ui/Card";
 import {
   REPORT_DISCLAIMER,
@@ -151,41 +152,86 @@ export function ScanReport({ scan }: ScanReportProps) {
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <Card className="flex items-center justify-center">
-          <RiskGauge score={scan.riskScore ?? 0} />
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{scan.pageTitle ?? "Analysis summary"}</CardTitle>
-            <CardDescription>{safeSummary}</CardDescription>
-            {scan.summary ? (
-              <p className="text-sm leading-6 text-secondary">{scan.summary}</p>
-            ) : null}
+      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+        <Card className="flex flex-col overflow-hidden border-border bg-surface shadow-sm">
+          <CardHeader className="border-b border-border/50 bg-muted/30 pb-4">
+            <CardTitle className="text-center text-sm uppercase tracking-wider text-secondary">
+              Caution Level
+            </CardTitle>
           </CardHeader>
+          <CardContent className="flex flex-1 items-center justify-center p-6">
+            <RiskGauge score={scan.riskScore ?? 0} />
+          </CardContent>
+        </Card>
+        
+        <Card className="border-border shadow-sm">
+          <CardHeader className="border-b border-border/50 bg-muted/30 pb-4">
+            <CardTitle className="text-lg">{scan.pageTitle ?? "Analysis summary"}</CardTitle>
+            <CardDescription className="text-sm font-medium text-foreground">{safeSummary}</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            {scan.summary ? (
+              <div className="prose prose-sm max-w-none text-secondary">
+                <p className="leading-relaxed">{scan.summary}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-secondary italic">No additional summary available.</p>
+            )}
+          </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Technical signals</CardTitle>
-          <CardDescription>
-            Neutral observations from this scan. These are not conclusions about
-            trustworthiness.
-          </CardDescription>
-        </CardHeader>
-        <ul className="space-y-2 px-6 pb-6">
-          {technicalSignals.map((signal) => (
-            <li key={signal} className="text-sm text-secondary">
-              • {signal}
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="border-b border-border/50 bg-muted/30 pb-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="size-2 rounded-full bg-primary" />
+              Technical signals
+            </CardTitle>
+            <CardDescription>
+              Neutral observations from this scan.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <ul className="space-y-3">
+              {technicalSignals.map((signal) => (
+                <li key={signal} className="flex items-start gap-3 text-sm text-secondary">
+                  <div className="mt-1.5 size-1.5 shrink-0 rounded-full bg-border" />
+                  <span className="leading-relaxed">{signal}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border shadow-sm h-full flex flex-col">
+          <CardHeader className="border-b border-border/50 bg-muted/30 pb-4">
+            <CardTitle className="text-base">What this means</CardTitle>
+            <CardDescription>
+              Context for common design cues.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 grid gap-4 p-6 sm:grid-cols-2 max-h-[350px] overflow-y-auto">
+            {CUE_EDUCATION.map((item) => (
+              <article
+                key={item.title}
+                className="flex flex-col justify-start rounded-xl border border-border/50 bg-surface p-4 shadow-sm transition-colors hover:border-border hover:bg-muted/10"
+              >
+                <h3 className="text-sm font-semibold text-foreground">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-secondary">
+                  {item.body}
+                </p>
+              </article>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
 
       {scan.viewportScreenshot ? (
-        <Card>
-          <CardHeader>
+        <Card className="border-border shadow-sm">
+          <CardHeader className="border-b border-border/50 bg-muted/30 pb-4">
             <CardTitle className="text-base">
               Viewport evidence snapshot
             </CardTitle>
@@ -194,22 +240,30 @@ export function ScanReport({ scan }: ScanReportProps) {
               review.
             </CardDescription>
           </CardHeader>
-          <div className="px-6 pb-6">
+          <CardContent className="p-6">
             {/* biome-ignore lint/performance/noImgElement: base64 evidence snapshot from scan */}
             <img
               src={`data:image/png;base64,${scan.viewportScreenshot}`}
               alt="Viewport screenshot captured during scan"
-              className="max-h-96 w-full rounded-lg border border-border object-contain object-left-top"
+              className="max-h-96 w-full rounded-lg border border-border object-contain object-left-top bg-muted/10"
             />
-          </div>
+          </CardContent>
         </Card>
       ) : null}
 
       {grouped.length > 0 ? (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            Potential pressure cues
-          </h2>
+        <div className="space-y-6 pt-4">
+          <div className="flex items-center gap-3 border-b border-border pb-4">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <AlertCircle className="size-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
+                Potential pressure cues
+              </h2>
+              <p className="text-sm text-secondary">Findings categorized by pattern type</p>
+            </div>
+          </div>
           {grouped.map(([category, detections]) => (
             <DetectionGroup
               key={category}
@@ -232,31 +286,6 @@ export function ScanReport({ scan }: ScanReportProps) {
           </p>
         </Card>
       )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">What this means</CardTitle>
-          <CardDescription>
-            Plain-English context for common design cues. This is not a legal,
-            fraud, safety, or regulatory determination.
-          </CardDescription>
-        </CardHeader>
-        <div className="grid gap-3 px-6 pb-6 sm:grid-cols-2">
-          {CUE_EDUCATION.map((item) => (
-            <article
-              key={item.title}
-              className="rounded-xl border border-border bg-muted/30 p-4"
-            >
-              <h3 className="text-sm font-semibold text-foreground">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-secondary">
-                {item.body}
-              </p>
-            </article>
-          ))}
-        </div>
-      </Card>
 
       <Card>
         <CardHeader>
