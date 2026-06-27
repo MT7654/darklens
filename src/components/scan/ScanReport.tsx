@@ -155,7 +155,7 @@ export function ScanReport({ scan, frameable = true }: ScanReportProps) {
             <LiveSitePreview
               url={scan.finalUrl ?? scan.url}
               frameable={frameable}
-              screenshotBase64={scan.viewportScreenshot ?? undefined}
+              screenshotBase64={scan.viewportScreenshot ?? null}
               accessBlocked={accessBlocked}
               rescanForm={
                 accessBlocked ? <ScreenshotRescanForm url={scan.url} /> : undefined
