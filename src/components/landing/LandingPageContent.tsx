@@ -1,3 +1,4 @@
+import { ScanSearch, Zap, PackageOpen, Users, ShoppingCart, Repeat, CalendarClock, ShieldCheck, Lock, Eye, Clock } from "lucide-react";
 import { CheckCategoryCard } from "@/components/landing/CheckCategoryCard";
 import { DisclaimerBlock } from "@/components/landing/DisclaimerBlock";
 import { FeatureCard } from "@/components/landing/FeatureCard";
@@ -11,15 +12,18 @@ const trustHighlights = [
     title: "Evidence-based",
     description:
       "Findings are linked to visible page text, UI elements, or screenshot evidence.",
+    icon: "shield" as const,
   },
   {
     title: "Private by default",
     description:
       "Screenshots are used internally to improve consistency checks.",
+    icon: "lock" as const,
   },
   {
     title: "Built for caution",
     description: "Reports avoid accusations and use confidence levels.",
+    icon: "eye" as const,
   },
 ] as const;
 
@@ -50,60 +54,72 @@ const checkCategories = [
   {
     title: "Urgency cues",
     description: "Countdown timers, flash sale claims, offer expiry messages.",
+    icon: "urgency" as const,
   },
   {
     title: "Scarcity cues",
-    description: "Low-stock messages, ‘only X left’, limited quantity claims.",
+    description: "Low-stock messages, 'only X left', limited quantity claims.",
+    icon: "scarcity" as const,
   },
   {
     title: "Social proof cues",
     description: "Visitor counts, recent purchase popups, popularity claims.",
+    icon: "social" as const,
   },
   {
     title: "Checkout fairness",
     description: "Preselected add-ons, late fees, unclear final pricing.",
+    icon: "checkout" as const,
   },
   {
     title: "Subscription friction",
     description:
       "Auto-renewal terms, cancellation difficulty, free-trial conversion.",
+    icon: "subscription" as const,
   },
   {
     title: "Consistency over time",
     description:
       "Repeated scans can show whether time-limited claims keep reappearing.",
+    icon: "consistency" as const,
   },
 ] as const;
 
 const historyMiniCards = [
   { title: "First observed", value: "12 Mar 2026" },
   { title: "Last observed", value: "27 Jun 2026" },
-  { title: "Repeated claim detected", value: "‘Sale ends today’" },
+  { title: "Repeated claim detected", value: "'Sale ends today'" },
 ] as const;
 
 export function LandingPageContent() {
   return (
     <>
-      <section className="border-b border-border bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <section className="hero-radial relative border-b border-border/50 bg-background">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
-              Spot pressure tactics before you make an online decision.
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/60 bg-primary/5 px-4 py-1.5 text-sm text-secondary">
+              <ScanSearch className="size-4 text-primary" />
+              AI-powered dark pattern detection
+            </div>
+            <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-6xl">
+              Spot pressure tactics
+              <br />
+              <span className="gradient-text">before you decide</span>
             </h1>
-            <p className="mt-5 text-lg leading-8 text-secondary">
+            <p className="mt-6 text-lg leading-8 text-secondary">
               DarkLens scans a webpage for potential urgency, scarcity, pricing,
               and checkout design cues, then explains the evidence in plain
               English.
             </p>
           </div>
 
-          <div className="mx-auto mt-10 max-w-2xl">
+          <div className="mx-auto mt-12 max-w-2xl">
             <HeroUrlScanner />
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border bg-muted/40 py-12 sm:py-16">
+      <section className="border-b border-border/50 bg-muted/20 py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-4 md:grid-cols-3">
             {trustHighlights.map((item) => (
@@ -111,6 +127,7 @@ export function LandingPageContent() {
                 key={item.title}
                 title={item.title}
                 description={item.description}
+                icon={item.icon}
               />
             ))}
           </div>
@@ -119,11 +136,11 @@ export function LandingPageContent() {
 
       <section
         id="how-it-works"
-        className="scroll-mt-24 border-b border-border py-14 sm:py-20"
+        className="scroll-mt-24 border-b border-border/50 py-16 sm:py-20"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               How it works
             </h2>
             <p className="mt-3 text-sm leading-6 text-secondary">
@@ -132,7 +149,7 @@ export function LandingPageContent() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-8 md:grid-cols-2">
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
             {howItWorksSteps.map((step, index) => (
               <HowItWorksStep
                 key={step.title}
@@ -147,11 +164,11 @@ export function LandingPageContent() {
 
       <section
         id="what-we-check"
-        className="scroll-mt-24 border-b border-border bg-muted/30 py-14 sm:py-20"
+        className="scroll-mt-24 border-b border-border/50 bg-muted/20 py-16 sm:py-20"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               What we check
             </h2>
             <p className="mt-3 text-sm leading-6 text-secondary">
@@ -166,6 +183,7 @@ export function LandingPageContent() {
                 key={category.title}
                 title={category.title}
                 description={category.description}
+                icon={category.icon}
               />
             ))}
           </div>
@@ -174,7 +192,7 @@ export function LandingPageContent() {
 
       <section
         id="sample-report"
-        className="scroll-mt-24 border-b border-border py-14 sm:py-20"
+        className="scroll-mt-24 border-b border-border/50 py-16 sm:py-20"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl">
@@ -183,10 +201,10 @@ export function LandingPageContent() {
         </div>
       </section>
 
-      <section className="border-b border-border bg-muted/30 py-14 sm:py-20">
+      <section className="border-b border-border/50 bg-muted/20 py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-3xl">
-            <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               More than a one-time warning
             </h2>
             <p className="mt-4 text-sm leading-7 text-secondary">
@@ -201,12 +219,12 @@ export function LandingPageContent() {
             {historyMiniCards.map((card) => (
               <article
                 key={card.title}
-                className="rounded-2xl border border-border bg-surface p-5 shadow-sm"
+                className="glass card-hover rounded-2xl border border-border/60 p-5"
               >
                 <p className="text-xs font-medium uppercase tracking-wide text-secondary">
                   {card.title}
                 </p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
+                <p className="mt-2 text-sm font-semibold text-primary">
                   {card.value}
                 </p>
               </article>
@@ -219,7 +237,7 @@ export function LandingPageContent() {
         </div>
       </section>
 
-      <section className="py-14 sm:py-20">
+      <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <DisclaimerBlock />
         </div>

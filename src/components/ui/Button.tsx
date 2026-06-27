@@ -11,11 +11,11 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-on-primary hover:bg-primary/90 focus-visible:ring-primary disabled:bg-primary/50",
+    "bg-primary text-on-primary hover:bg-primary/85 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] focus-visible:ring-primary disabled:bg-primary/30",
   secondary:
-    "border border-border bg-background text-foreground hover:bg-muted focus-visible:ring-ring disabled:opacity-50",
+    "border border-border bg-card text-foreground hover:border-primary/40 hover:bg-muted focus-visible:ring-ring disabled:opacity-50",
   ghost:
-    "text-foreground hover:bg-muted focus-visible:ring-ring disabled:opacity-50",
+    "text-secondary hover:text-foreground hover:bg-muted focus-visible:ring-ring disabled:opacity-50",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -36,7 +36,7 @@ export function Button({
     <button
       type="button"
       disabled={disabled || loading}
-      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed motion-reduce:transition-none ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed motion-reduce:transition-none ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {loading ? (

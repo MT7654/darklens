@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScanSearch } from "lucide-react";
 
 const footerLinks = [
   { href: "#", label: "About" },
@@ -12,11 +13,18 @@ const footerLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer className="border-t border-border/50 bg-muted/30">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <p className="text-base font-semibold text-foreground">DarkLens</p>
+            <div className="flex items-center gap-2">
+              <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
+                <ScanSearch className="size-4 text-primary" />
+              </span>
+              <p className="text-base font-semibold text-foreground">
+                Dark<span className="gradient-text">Lens</span>
+              </p>
+            </div>
             <p className="max-w-sm text-sm leading-6 text-secondary">
               Consumer decision-support for online trust.
             </p>
@@ -38,7 +46,7 @@ export function Footer() {
           </nav>
         </div>
 
-        <p className="mt-8 border-t border-border pt-6 text-xs leading-5 text-secondary">
+        <p className="mt-8 border-t border-border/50 pt-6 text-xs leading-5 text-secondary">
           DarkLens highlights observable design cues. It is not a substitute for
           legal, financial, or security advice.
         </p>

@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { Search, Upload, ImageIcon } from "lucide-react";
 import { submitScan } from "@/app/actions/scan/submitScan";
 import { ScanProgressOverlay } from "@/components/scan/ScanProgressOverlay";
 import { TermsOfUseDialog } from "@/components/scan/TermsOfUseDialog";
-import { Button } from "@/components/ui/Button";
 import { HOMEPAGE_DISCLAIMER } from "@/lib/constants/disclaimers";
 import { readScreenshotFile } from "@/lib/screenshot-upload";
 import { hasAcceptedCurrentTerms } from "@/lib/terms-storage";
@@ -171,50 +171,63 @@ export function HeroUrlScanner() {
 
       <div
         id="scan"
-        className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6"
+        className="glass glow-primary rounded-2xl border border-border/60 p-5 shadow-2xl sm:p-7"
       >
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="flex flex-col gap-3 sm:flex-row">
             <label htmlFor="url-input" className="sr-only">
               Public webpage URL
             </label>
-            <input
-              id="url-input"
-              type="url"
-              name="url"
-              value={url}
-              onChange={(event) => {
-                setUrl(event.target.value);
-                if (error) setError(null);
-              }}
-              placeholder="Paste a public webpage URL"
-              disabled={isScanning}
-              autoComplete="url"
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? "url-error" : "url-helper"}
-              className={`min-h-12 flex-1 rounded-xl border bg-background px-4 py-3 text-base text-foreground placeholder:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-60 ${
-                error ? "border-destructive" : "border-border"
-              }`}
-            />
-            <Button
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-secondary" />
+              <input
+                id="url-input"
+                type="url"
+                name="url"
+                value={url}
+                onChange={(event) => {
+                  setUrl(event.target.value);
+                  if (error) setError(null);
+                }}
+                placeholder="Paste a public webpage URL"
+                disabled={isScanning}
+                autoComplete="url"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? "url-error" : "url-helper"}
+                className={`min-h-12 w-full rounded-xl border bg-background/60 pl-12 pr-4 py-3 text-base text-foreground placeholder:text-secondary transition-all focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 disabled:opacity-60 ${
+                  error ? "border-destructive" : "border-border"
+                }`}
+              />
+            </div>
+            <button
               type="submit"
-              size="lg"
-              loading={isScanning}
               disabled={isScanning}
-              className="min-h-12 rounded-xl bg-primary px-6 text-on-primary hover:bg-primary/90 focus-visible:ring-primary sm:shrink-0"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-medium text-on-primary transition-all hover:bg-primary/85 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 sm:shrink-0"
             >
-              {screenshotFile ? "Analyse screenshot" : "Scan webpage"}
-            </Button>
+              {isScanning ? (
+                <>
+                  <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Scanning…
+                </>
+              ) : (
+                <>
+                  {screenshotFile ? "Analyse screenshot" : "Scan webpage"}
+                </>
+              )}
+            </button>
           </div>
 
-          <div className="rounded-xl border border-dashed border-border bg-background/60 p-4">
-            <label
-              htmlFor="screenshot-upload"
-              className="text-sm font-medium text-foreground"
-            >
-              Optional: upload a screenshot
-            </label>
-            <p className="mt-1 text-sm leading-6 text-secondary">
+          <div className="rounded-xl border border-dashed border-border/50 bg-background/40 p-4 transition-colors hover:border-border">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="size-4 text-secondary" />
+              <label
+                htmlFor="screenshot-upload"
+                className="text-sm font-medium text-foreground"
+              >
+                Optional: upload a screenshot
+              </label>
+            </div>
+            <p className="mt-1.5 text-sm leading-6 text-secondary">
               If a site blocks automated access, open it in your browser, take a
               screenshot, and upload it here. DarkLens will analyse the image
               without requesting the page again.
@@ -226,10 +239,10 @@ export function HeroUrlScanner() {
               accept="image/png,image/jpeg,image/webp"
               disabled={isScanning}
               onChange={handleScreenshotChange}
-              className="mt-3 block w-full text-sm text-secondary file:mr-3 file:rounded-lg file:border file:border-border file:bg-surface file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
+              className="mt-3 block w-full text-sm text-secondary file:mr-3 file:rounded-lg file:border file:border-border file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted/80"
             />
             {screenshotFile ? (
-              <p className="mt-2 text-xs text-secondary">
+              <p className="mt-2 text-xs text-primary">
                 Selected: {screenshotFile.name}
               </p>
             ) : null}
