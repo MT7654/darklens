@@ -165,56 +165,39 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     }
 
     // Wait for network to settle (CSS, JS, images loaded)
-    await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => undefined);
+    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
 
     // Wait for fonts to be ready so text renders properly
     await page.evaluate(() => document.fonts?.ready?.catch(() => {})).catch(() => undefined);
 
-    // Wait for images to finish loading (at least the ones in the viewport)
+    // Wait for viewport images to finish loading
     await page.waitForFunction(
       () => {
         const imgs = Array.from(document.querySelectorAll("img"));
         if (imgs.length === 0) return true;
-        return imgs.slice(0, 30).every((img) => img.complete && img.naturalWidth > 0);
+        return imgs.slice(0, 20).every((img) => img.complete && img.naturalWidth > 0);
       },
-      { timeout: 12_000 },
+      { timeout: 8_000 },
     ).catch(() => undefined);
 
     // Scroll down to trigger lazy-loaded images, then back to top.
-    // This is critical for SPAs with lazy loading — without scrolling,
-    // below-the-fold images never load and the page appears half-rendered.
     const scrollHeight = await page.evaluate(() => document.body?.scrollHeight ?? 0).catch(() => 0);
     if (scrollHeight > 800) {
       await page.evaluate((h) => window.scrollTo(0, Math.floor(h / 2)), scrollHeight).catch(() => undefined);
-      await page.waitForTimeout(3000);
-      // Wait for newly-triggered images to load
-      await page.waitForFunction(
-        () => {
-          const imgs = Array.from(document.querySelectorAll("img"));
-          if (imgs.length === 0) return true;
-          return imgs.slice(0, 50).every((img) => img.complete && img.naturalWidth > 0);
-        },
-        { timeout: 10_000 },
-      ).catch(() => undefined);
+      await page.waitForTimeout(2000);
     }
     await page.evaluate(() => window.scrollTo(0, 0)).catch(() => undefined);
-    await page.waitForTimeout(2000);
 
-    // Dismiss any open dropdowns, search overlays, or popups that may have
-    // auto-opened on page load (e.g. search input auto-focus triggers a
-    // "Recent Searches" dropdown that covers the homepage content).
+    // Dismiss any open dropdowns, search overlays, or popups that auto-opened
     await page.evaluate(() => {
-      // Blur any focused input (especially search bars that auto-open dropdowns)
       if (document.activeElement && document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-      // Click on the body to dismiss hover-triggered overlays
       document.body.click();
     }).catch(() => undefined);
     await page.keyboard.press("Escape").catch(() => undefined);
-    await page.waitForTimeout(1500);
 
-    // Close any remaining visible cookie banners, newsletter popups, etc.
+    // Close cookie banners, newsletter popups, etc.
     await page.evaluate(() => {
       const dismissSelectors = [
         "[class*='cookie'][class*='accept']",
@@ -233,22 +216,18 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
         }
       }
     }).catch(() => undefined);
-    await page.waitForTimeout(1000);
+
+    // Short settle for final rendering
+    await page.waitForTimeout(1500);
 
     try {
-      await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 8000 });
+      await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 5000 });
     } catch {
       // Dynamic timers may load later or not exist on this page.
     }
 
-    await page.waitForTimeout(1000);
-
     const viewportScreenshot = (
       await page.screenshot({ type: "jpeg", quality: 90, fullPage: false })
-    ).toString("base64");
-
-    const fullPageScreenshot = (
-      await page.screenshot({ type: "jpeg", quality: 80, fullPage: true })
     ).toString("base64");
 
     const data = await page.evaluate((countdownSelector) => {
@@ -318,7 +297,7 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
       visibleText: data.visibleText.slice(0, 12_000),
       interactiveHtml: data.interactiveHtml.slice(0, 8_000),
       viewportScreenshot,
-      fullPageScreenshot,
+      fullPageScreenshot: "",
       screenshotCapturedAt: new Date(),
       httpStatus,
       access,
