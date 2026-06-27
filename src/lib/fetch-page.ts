@@ -142,7 +142,7 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     });
 
     let response = await page.goto(url, {
-      waitUntil: "load",
+      waitUntil: "domcontentloaded",
       timeout: FETCH_TIMEOUT_MS,
     });
 
@@ -164,7 +164,24 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
       httpStatus = 200;
     }
 
-    await page.waitForTimeout(2000);
+    // Wait for network to settle (CSS, JS, images loaded)
+    await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => undefined);
+
+    // Wait for fonts to be ready so text renders properly
+    await page.evaluate(() => document.fonts?.ready?.catch(() => {})).catch(() => undefined);
+
+    // Wait for images to finish loading (at least the ones in the viewport)
+    await page.waitForFunction(
+      () => {
+        const imgs = Array.from(document.querySelectorAll("img"));
+        if (imgs.length === 0) return true;
+        return imgs.slice(0, 30).every((img) => img.complete && img.naturalWidth > 0);
+      },
+      { timeout: 12_000 },
+    ).catch(() => undefined);
+
+    // Static buffer: let final rendering, animations, and lazy-loaded content settle
+    await page.waitForTimeout(5000);
 
     try {
       await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 8000 });
@@ -172,7 +189,7 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
       // Dynamic timers may load later or not exist on this page.
     }
 
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
     const viewportScreenshot = (
       await page.screenshot({ type: "png", fullPage: false })
