@@ -1,4 +1,4 @@
-import { AlertTriangle, AlertCircle, Info, Flag } from "lucide-react";
+import { AlertTriangle, AlertCircle, Info } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import {
   confidenceLabelFromScore,
@@ -56,14 +56,8 @@ export function DetectionCard({ detection }: DetectionCardProps) {
           </span>
           <span className={`inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium ${sev.text}`}>
             <SevIcon className="size-3" />
-            {sev.label}
+            {sev.label} concern
           </span>
-          {detection.severity === "HIGH" && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/15 px-3 py-1 text-xs font-bold text-destructive">
-              <Flag className="size-3" />
-              Red flag
-            </span>
-          )}
           <span className="inline-flex rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-secondary">
             Confidence: {confidenceLabel}
           </span>

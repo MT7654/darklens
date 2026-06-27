@@ -7,7 +7,6 @@ import {
   Sparkles,
   CheckCircle2,
   ExternalLink,
-  Flag,
 } from "lucide-react";
 import Link from "next/link";
 import { DetectionGroup } from "@/components/scan/DetectionGroup";
@@ -88,7 +87,7 @@ export function ScanReport({ scan }: ScanReportProps) {
     <div className="min-h-screen pb-24">
       {/* Top header bar */}
       <div className="border-b border-border/60 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-start justify-between gap-4 px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="space-y-1">
             <Link
               href="/"
@@ -123,7 +122,7 @@ export function ScanReport({ scan }: ScanReportProps) {
       </div>
 
       {/* Split-pane layout: screenshot left, analysis right */}
-      <div className="mx-auto grid max-w-7xl gap-0 px-4 sm:px-6 lg:grid-cols-[1fr_1fr] lg:gap-6">
+      <div className="grid gap-0 px-4 sm:px-6 lg:grid-cols-[3fr_2fr] lg:gap-6 lg:px-8">
         {/* LEFT: Live website preview (sticky) */}
         <div className="lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)] lg:self-start">
           <div className="glass flex h-full flex-col overflow-hidden rounded-2xl border border-border/60">
@@ -152,13 +151,13 @@ export function ScanReport({ scan }: ScanReportProps) {
             </div>
 
             {/* Screenshot / preview area */}
-            <div className="flex flex-1 items-center justify-center overflow-auto bg-background/40 p-4">
+            <div className="flex flex-1 items-center justify-start overflow-auto bg-muted/20 p-3">
               {scan.viewportScreenshot ? (
                 // biome-ignore lint/performance/noImgElement: base64 evidence snapshot from scan
                 <img
                   src={`data:image/png;base64,${scan.viewportScreenshot}`}
                   alt="Viewport screenshot captured during scan"
-                  className="max-h-full w-full rounded-lg border border-border/40 object-contain object-left-top"
+                  className="w-full rounded-lg border border-border/40 object-top"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-3 py-16 text-center">
@@ -258,16 +257,16 @@ export function ScanReport({ scan }: ScanReportProps) {
             </CardContent>
           </Card>
 
-          {/* Red flags / detection feed */}
+          {/* Pressure cues / detection feed */}
           {grouped.length > 0 ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3 border-b border-border/60 pb-3">
-                <div className="flex size-9 items-center justify-center rounded-xl bg-destructive/15">
-                  <Flag className="size-5 text-destructive" />
+                <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10">
+                  <AlertCircle className="size-5 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold tracking-tight text-foreground">
-                    Red flags detected
+                    Detected pressure cues
                   </h2>
                   <p className="text-sm text-secondary">
                     {pressureDetections.length} finding
@@ -290,7 +289,7 @@ export function ScanReport({ scan }: ScanReportProps) {
               <h2 className="text-xl font-semibold text-foreground">
                 {accessBlocked
                   ? "Insufficient evidence from this scan"
-                  : "No red flags detected"}
+                  : "No pressure cues detected"}
               </h2>
               <p className="mx-auto max-w-prose text-sm leading-6 text-secondary">
                 {accessBlocked
