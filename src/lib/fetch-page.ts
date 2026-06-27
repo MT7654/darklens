@@ -14,7 +14,7 @@ export type FetchedPage = {
 };
 
 const FETCH_TIMEOUT_MS = 45_000;
-const MAX_STORED_SCREENSHOT_CHARS = 500_000;
+const MAX_STORED_SCREENSHOT_CHARS = 2_000_000;
 
 const BROWSER_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -192,11 +192,11 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     await page.waitForTimeout(2000);
 
     const viewportScreenshot = (
-      await page.screenshot({ type: "png", fullPage: false })
+      await page.screenshot({ type: "jpeg", quality: 85, fullPage: false })
     ).toString("base64");
 
     const fullPageScreenshot = (
-      await page.screenshot({ type: "png", fullPage: true })
+      await page.screenshot({ type: "jpeg", quality: 80, fullPage: true })
     ).toString("base64");
 
     const data = await page.evaluate((countdownSelector) => {

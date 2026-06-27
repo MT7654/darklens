@@ -155,7 +155,7 @@ export function ScanReport({ scan }: ScanReportProps) {
               {scan.viewportScreenshot ? (
                 // biome-ignore lint/performance/noImgElement: base64 evidence snapshot from scan
                 <img
-                  src={`data:image/png;base64,${scan.viewportScreenshot}`}
+                  src={`data:image/jpeg;base64,${scan.viewportScreenshot}`}
                   alt="Viewport screenshot captured during scan"
                   className="w-full rounded-lg border border-border/40 object-top"
                 />
