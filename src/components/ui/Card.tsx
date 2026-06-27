@@ -33,3 +33,7 @@ export function CardDescription({
 }: HTMLAttributes<HTMLParagraphElement>) {
   return <p className={`text-sm text-secondary ${className}`} {...props} />;
 }
+
+export function CardContent({ className = "", ...props }: CardProps) {
+  return <div className={`${className}`} {...props} />;
+}
