@@ -7,12 +7,16 @@ type LiveSitePreviewProps = {
   url: string;
   frameable: boolean;
   screenshotBase64: string | null;
+  accessBlocked?: boolean;
+  rescanForm?: React.ReactNode;
 };
 
 export function LiveSitePreview({
   url,
   frameable,
   screenshotBase64,
+  accessBlocked,
+  rescanForm,
 }: LiveSitePreviewProps) {
   const [loading, setLoading] = useState(true);
   const [timedOut, setTimedOut] = useState(false);
@@ -51,8 +55,11 @@ export function LiveSitePreview({
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <ShieldOff className="size-10 text-secondary/40" />
               <p className="max-w-xs text-sm text-secondary">
-                No snapshot available and this site blocks live embedding.
+                {accessBlocked
+                  ? "No screenshot captured — the page blocked automated access."
+                  : "No snapshot available and this site blocks live embedding."}
               </p>
+              {rescanForm}
               <a
                 href={url}
                 target="_blank"
