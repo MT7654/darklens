@@ -142,7 +142,7 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     });
 
     let response = await page.goto(url, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "load",
       timeout: FETCH_TIMEOUT_MS,
     });
 
@@ -165,10 +165,17 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     }
 
     // Wait for network to settle (CSS, JS, images loaded)
-    await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => undefined);
+    await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => undefined);
 
     // Wait for fonts to be ready so text renders properly
     await page.evaluate(() => document.fonts?.ready?.catch(() => {})).catch(() => undefined);
+
+    // Wait for substantial body content to appear (SPA content rendered)
+    // A fully loaded page should have > 2000 chars of visible text
+    await page.waitForFunction(
+      () => (document.body?.innerText?.length ?? 0) > 2000,
+      { timeout: 15_000 },
+    ).catch(() => undefined);
 
     // Wait for images to finish loading (at least the ones in the viewport)
     await page.waitForFunction(
@@ -180,12 +187,17 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
       { timeout: 12_000 },
     ).catch(() => undefined);
 
-    // Static buffer: let final rendering, animations, and lazy-loaded content settle
-    await page.waitForTimeout(5000);
+    // Dismiss auto-opened overlays (search menus, cookie banners, modals)
+    await page.keyboard.press("Escape").catch(() => undefined);
+    await page.waitForTimeout(500);
+    await page.evaluate(() => {
+      // Click on the body to dismiss click-triggered overlays
+      document.body.click();
+    }).catch(() => undefined);
 
     // Scroll to top in case prior scrolling left the viewport elsewhere
     await page.evaluate(() => window.scrollTo(0, 0)).catch(() => undefined);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     try {
       await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 8000 });
@@ -195,9 +207,33 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
 
     await page.waitForTimeout(2000);
 
-    const viewportScreenshot = (
-      await page.screenshot({ type: "jpeg", quality: 92, fullPage: false })
-    ).toString("base64");
+    // PROBE SCREENSHOT with retry: take a screenshot, check if it has enough content.
+    // A near-blank/unrendered page produces a tiny screenshot (< 100KB base64).
+    // If too small, wait and retry up to 3 times.
+    let viewportScreenshot = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const probe = (
+        await page.screenshot({ type: "jpeg", quality: 90, fullPage: false })
+      ).toString("base64");
+
+      if (probe.length > 100_000) {
+        // Screenshot is substantial enough — page has rendered real content
+        viewportScreenshot = probe;
+        break;
+      }
+
+      // Too small — page hasn't fully rendered yet. Wait and retry.
+      await page.waitForTimeout(5000);
+      // Re-dismiss any overlays that may have reappeared
+      await page.keyboard.press("Escape").catch(() => undefined);
+      await page.evaluate(() => window.scrollTo(0, 0)).catch(() => undefined);
+      await page.waitForTimeout(1000);
+
+      if (attempt === 2) {
+        // Last attempt — use whatever we got
+        viewportScreenshot = probe;
+      }
+    }
 
     const fullPageScreenshot = (
       await page.screenshot({ type: "jpeg", quality: 80, fullPage: true })
