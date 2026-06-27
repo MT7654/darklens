@@ -37,7 +37,7 @@ export function DetectionGroup({ category, detections }: DetectionGroupProps) {
         />
       </button>
       {open ? (
-        <div className="grid gap-4 p-5 md:grid-cols-2">
+        <div className="grid gap-4 p-5">
           {detections.map((detection) => (
             <DetectionCard key={detection.id} detection={detection} />
           ))}
