@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 import { submitScan } from "@/app/actions/scan/submitScan";
 import { TermsOfUseDialog } from "@/components/scan/TermsOfUseDialog";
 import { readScreenshotFile } from "@/lib/screenshot-upload";
-import { hasAcceptedCurrentTerms } from "@/lib/terms-storage";
 import { SCAN_PROGRESS_COMPLETE_MS } from "@/hooks/useScanProgress";
 
 type ScreenshotRescanFormProps = {
@@ -56,11 +55,6 @@ export function ScreenshotRescanForm({ url }: ScreenshotRescanFormProps) {
     setError(null);
     const file = event.target.files?.[0];
     if (!file) return;
-
-    if (hasAcceptedCurrentTerms()) {
-      await beginScreenshotScan(file);
-      return;
-    }
 
     setPendingFile(file);
     setTermsOpen(true);

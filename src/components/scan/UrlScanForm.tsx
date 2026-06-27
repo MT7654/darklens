@@ -8,7 +8,6 @@ import { TermsOfUseDialog } from "@/components/scan/TermsOfUseDialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { HOMEPAGE_DISCLAIMER } from "@/lib/constants/disclaimers";
-import { hasAcceptedCurrentTerms } from "@/lib/terms-storage";
 import {
   type ScanProgressPhase,
   SCAN_PROGRESS_COMPLETE_MS,
@@ -84,11 +83,6 @@ export function UrlScanForm() {
     const result = validateUrl(url);
     if (!result.ok) {
       setError(result.error);
-      return;
-    }
-
-    if (hasAcceptedCurrentTerms()) {
-      beginScan(result.url);
       return;
     }
 

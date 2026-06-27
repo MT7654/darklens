@@ -9,7 +9,6 @@ import { TermsOfUseDialog } from "@/components/scan/TermsOfUseDialog";
 import { HOMEPAGE_DISCLAIMER } from "@/lib/constants/disclaimers";
 import { TERMS_MODAL } from "@/lib/constants/terms";
 import { readScreenshotFile } from "@/lib/screenshot-upload";
-import { hasAcceptedCurrentTerms } from "@/lib/terms-storage";
 import {
   type ScanProgressPhase,
   SCAN_PROGRESS_COMPLETE_MS,
@@ -124,11 +123,6 @@ export function HeroUrlScanner() {
 
     const scanPayload = await prepareScan(result.url, screenshotFile);
     if (!scanPayload) return;
-
-    if (hasAcceptedCurrentTerms()) {
-      beginScan(scanPayload);
-      return;
-    }
 
     setPendingScan(scanPayload);
     setTermsOpen(true);

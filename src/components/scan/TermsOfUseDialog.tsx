@@ -24,7 +24,6 @@ import {
   TERMS_SECTIONS,
   TERMS_VERSION,
 } from "@/lib/constants/terms";
-import { setAcceptedTermsVersion } from "@/lib/terms-storage";
 
 type TermsOfUseDialogProps = {
   open: boolean;
@@ -79,7 +78,6 @@ export function TermsOfUseDialog({
   }, [open, onClose]);
 
   function handleAccept() {
-    setAcceptedTermsVersion(TERMS_VERSION);
     onAccept();
   }
 
