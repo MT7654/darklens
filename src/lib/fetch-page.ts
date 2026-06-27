@@ -200,6 +200,41 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     await page.evaluate(() => window.scrollTo(0, 0)).catch(() => undefined);
     await page.waitForTimeout(2000);
 
+    // Dismiss any open dropdowns, search overlays, or popups that may have
+    // auto-opened on page load (e.g. search input auto-focus triggers a
+    // "Recent Searches" dropdown that covers the homepage content).
+    await page.evaluate(() => {
+      // Blur any focused input (especially search bars that auto-open dropdowns)
+      if (document.activeElement && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      // Click on the body to dismiss hover-triggered overlays
+      document.body.click();
+    }).catch(() => undefined);
+    await page.keyboard.press("Escape").catch(() => undefined);
+    await page.waitForTimeout(1500);
+
+    // Close any remaining visible cookie banners, newsletter popups, etc.
+    await page.evaluate(() => {
+      const dismissSelectors = [
+        "[class*='cookie'][class*='accept']",
+        "[class*='cookie'][class*='confirm']",
+        "[class*='cookie'] button[class*='accept']",
+        "[class*='popup'] [class*='close']",
+        "[class*='modal'] [class*='close']",
+        "[class*='newsletter'] [class*='close']",
+        "[aria-label='Close']",
+        "[class*='reject']",
+      ];
+      for (const sel of dismissSelectors) {
+        const el = document.querySelector(sel) as HTMLElement | null;
+        if (el && el.offsetParent !== null) {
+          el.click();
+        }
+      }
+    }).catch(() => undefined);
+    await page.waitForTimeout(1000);
+
     try {
       await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 8000 });
     } catch {
