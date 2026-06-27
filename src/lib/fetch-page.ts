@@ -183,6 +183,10 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     // Static buffer: let final rendering, animations, and lazy-loaded content settle
     await page.waitForTimeout(5000);
 
+    // Scroll to top in case prior scrolling left the viewport elsewhere
+    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => undefined);
+    await page.waitForTimeout(500);
+
     try {
       await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 8000 });
     } catch {
@@ -192,7 +196,7 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     await page.waitForTimeout(2000);
 
     const viewportScreenshot = (
-      await page.screenshot({ type: "jpeg", quality: 85, fullPage: false })
+      await page.screenshot({ type: "jpeg", quality: 92, fullPage: false })
     ).toString("base64");
 
     const fullPageScreenshot = (
