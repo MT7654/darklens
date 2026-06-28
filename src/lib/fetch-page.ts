@@ -15,6 +15,7 @@ export type FetchedPage = {
 
 const FETCH_TIMEOUT_MS = 45_000;
 const MAX_STORED_SCREENSHOT_CHARS = 2_000_000;
+const VIEWPORT_HEIGHT = 768;
 
 const BROWSER_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -92,7 +93,7 @@ async function createBrowserContext(
 ) {
   const context = await browser.newContext({
     userAgent: BROWSER_USER_AGENT,
-    viewport: { width: 1366, height: 768 },
+    viewport: { width: 1366, height: VIEWPORT_HEIGHT },
     locale: "en-SG",
     timezoneId: "Asia/Singapore",
     extraHTTPHeaders: {
@@ -124,6 +125,43 @@ export function trimScreenshotForStorage(base64: string): string | null {
     return null;
   }
   return base64;
+}
+
+async function waitForVisibleHero(page: Page): Promise<void> {
+  const heroSelectors = [
+    "img[src]",
+    "img[data-src]",
+    "picture img",
+    "[style*='background-image']",
+  ].join(",");
+
+  try {
+    await page.waitForFunction(
+      (selector) => {
+        const hero = document.querySelector(selector);
+        if (!hero) return false;
+        const rect = (hero as HTMLElement).getBoundingClientRect();
+        const style = window.getComputedStyle(hero as Element);
+        const visible =
+          rect.width > 120 &&
+          rect.height > 120 &&
+          style.visibility !== "hidden" &&
+          style.display !== "none";
+        if (!visible) return false;
+
+        const img = hero as HTMLImageElement;
+        if (img.tagName === "IMG") {
+          return img.complete && img.naturalWidth > 200 && img.naturalHeight > 200;
+        }
+
+        return true;
+      },
+      heroSelectors,
+      { timeout: 15_000 },
+    );
+  } catch {
+    // If the page has no prominent hero imagery, continue anyway.
+  }
 }
 
 export async function fetchPage(url: string): Promise<FetchedPage> {
@@ -164,67 +202,17 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
       httpStatus = 200;
     }
 
-    // Wait for the 'load' event — fires when all initial resources (CSS, JS) are downloaded.
-    // This is more reliable than 'networkidle' which never fires on sites with continuous
-    // background requests (analytics, tracking pixels, websockets).
     await page.waitForLoadState("load", { timeout: 15_000 }).catch(() => undefined);
-
-    // Wait for CSS to be applied — check that the body has non-default styling.
-    // "White background, blue links" = unstyled HTML. We need to confirm CSS rendered.
-    await page.waitForFunction(
-      () => {
-        const styles = window.getComputedStyle(document.body);
-        const hasCustomBg = styles.backgroundColor !== "rgba(0, 0, 0, 0)" && styles.backgroundColor !== "rgb(255, 255, 255)";
-        const hasCustomColor = styles.color !== "rgb(0, 0, 0)";
-        const styleSheets = document.styleSheets.length;
-        return styleSheets > 0 && (hasCustomBg || hasCustomColor);
-      },
-      { timeout: 10_000 },
-    ).catch(() => undefined);
-
-    // Wait for fonts to be ready
+    await page.waitForTimeout(1500);
     await page.evaluate(() => document.fonts?.ready?.catch(() => {})).catch(() => undefined);
-
-    // Short settle for final paint
-    await page.waitForTimeout(2000);
-
-    // Dismiss overlays (search dropdowns, cookie banners, popups)
-    await page.evaluate(() => {
-      if (document.activeElement && document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
-      document.body.click();
-    }).catch(() => undefined);
-    await page.keyboard.press("Escape").catch(() => undefined);
-    await page.waitForTimeout(1000);
-
-    // Close cookie banners / popups
-    await page.evaluate(() => {
-      const dismissSelectors = [
-        "[class*='cookie'][class*='accept']",
-        "[class*='cookie'] button",
-        "[class*='popup'] [class*='close']",
-        "[class*='modal'] [class*='close']",
-        "[aria-label='Close']",
-        "[class*='reject']",
-      ];
-      for (const sel of dismissSelectors) {
-        const el = document.querySelector(sel) as HTMLElement | null;
-        if (el && el.offsetParent !== null) {
-          el.click();
-        }
-      }
-    }).catch(() => undefined);
-    await page.waitForTimeout(500);
-
-    try {
-      await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 5000 });
-    } catch {
-      // Dynamic timers may load later or not exist on this page.
-    }
+    await waitForVisibleHero(page);
 
     const viewportScreenshot = (
       await page.screenshot({ type: "jpeg", quality: 90, fullPage: false })
+    ).toString("base64");
+
+    const fullPageScreenshot = (
+      await page.screenshot({ type: "jpeg", quality: 80, fullPage: true })
     ).toString("base64");
 
     const data = await page.evaluate((countdownSelector) => {
