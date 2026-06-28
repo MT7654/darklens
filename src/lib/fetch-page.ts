@@ -142,15 +142,15 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     });
 
     let response = await page.goto(url, {
-      waitUntil: "networkidle",
-      timeout: 30_000,
+      waitUntil: "domcontentloaded",
+      timeout: FETCH_TIMEOUT_MS,
     });
 
     if (!response || response.status() >= 400) {
       await page.waitForTimeout(1500);
       response = await page.goto(url, {
         waitUntil: "domcontentloaded",
-        timeout: 30_000,
+        timeout: FETCH_TIMEOUT_MS,
       });
     }
 
@@ -163,6 +163,11 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     if (!isBotChallengeUrl(page.url()) && httpStatus === 202) {
       httpStatus = 200;
     }
+
+    // Wait for the 'load' event — fires when all initial resources (CSS, JS) are downloaded.
+    // This is more reliable than 'networkidle' which never fires on sites with continuous
+    // background requests (analytics, tracking pixels, websockets).
+    await page.waitForLoadState("load", { timeout: 15_000 }).catch(() => undefined);
 
     // Wait for CSS to be applied — check that the body has non-default styling.
     // "White background, blue links" = unstyled HTML. We need to confirm CSS rendered.
