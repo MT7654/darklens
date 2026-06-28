@@ -142,15 +142,15 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     });
 
     let response = await page.goto(url, {
-      waitUntil: "load",
-      timeout: FETCH_TIMEOUT_MS,
+      waitUntil: "networkidle",
+      timeout: 30_000,
     });
 
     if (!response || response.status() >= 400) {
       await page.waitForTimeout(1500);
       response = await page.goto(url, {
-        waitUntil: "networkidle",
-        timeout: FETCH_TIMEOUT_MS,
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
       });
     }
 
@@ -164,31 +164,26 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
       httpStatus = 200;
     }
 
-    // Wait for network to settle (CSS, JS, images loaded)
-    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
-
-    // Wait for fonts to be ready so text renders properly
-    await page.evaluate(() => document.fonts?.ready?.catch(() => {})).catch(() => undefined);
-
-    // Wait for viewport images to finish loading
+    // Wait for CSS to be applied — check that the body has non-default styling.
+    // "White background, blue links" = unstyled HTML. We need to confirm CSS rendered.
     await page.waitForFunction(
       () => {
-        const imgs = Array.from(document.querySelectorAll("img"));
-        if (imgs.length === 0) return true;
-        return imgs.slice(0, 20).every((img) => img.complete && img.naturalWidth > 0);
+        const styles = window.getComputedStyle(document.body);
+        const hasCustomBg = styles.backgroundColor !== "rgba(0, 0, 0, 0)" && styles.backgroundColor !== "rgb(255, 255, 255)";
+        const hasCustomColor = styles.color !== "rgb(0, 0, 0)";
+        const styleSheets = document.styleSheets.length;
+        return styleSheets > 0 && (hasCustomBg || hasCustomColor);
       },
-      { timeout: 8_000 },
+      { timeout: 10_000 },
     ).catch(() => undefined);
 
-    // Scroll down to trigger lazy-loaded images, then back to top.
-    const scrollHeight = await page.evaluate(() => document.body?.scrollHeight ?? 0).catch(() => 0);
-    if (scrollHeight > 800) {
-      await page.evaluate((h) => window.scrollTo(0, Math.floor(h / 2)), scrollHeight).catch(() => undefined);
-      await page.waitForTimeout(2000);
-    }
-    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => undefined);
+    // Wait for fonts to be ready
+    await page.evaluate(() => document.fonts?.ready?.catch(() => {})).catch(() => undefined);
 
-    // Dismiss any open dropdowns, search overlays, or popups that auto-opened
+    // Short settle for final paint
+    await page.waitForTimeout(2000);
+
+    // Dismiss overlays (search dropdowns, cookie banners, popups)
     await page.evaluate(() => {
       if (document.activeElement && document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
@@ -196,16 +191,15 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
       document.body.click();
     }).catch(() => undefined);
     await page.keyboard.press("Escape").catch(() => undefined);
+    await page.waitForTimeout(1000);
 
-    // Close cookie banners, newsletter popups, etc.
+    // Close cookie banners / popups
     await page.evaluate(() => {
       const dismissSelectors = [
         "[class*='cookie'][class*='accept']",
-        "[class*='cookie'][class*='confirm']",
-        "[class*='cookie'] button[class*='accept']",
+        "[class*='cookie'] button",
         "[class*='popup'] [class*='close']",
         "[class*='modal'] [class*='close']",
-        "[class*='newsletter'] [class*='close']",
         "[aria-label='Close']",
         "[class*='reject']",
       ];
@@ -216,9 +210,7 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
         }
       }
     }).catch(() => undefined);
-
-    // Short settle for final rendering
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(500);
 
     try {
       await page.waitForSelector(COUNTDOWN_SELECTORS, { timeout: 5000 });
